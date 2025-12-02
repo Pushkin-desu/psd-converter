@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psd-converter
+  namespace: psd-converter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: psd-converter
+  template:
+    metadata:
+      labels:
+        app: psd-converter
+    spec:
+      containers:
+      - name: psd-converter
+        image: PLACEHOLDER_IMAGE
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MAX_TOTAL_REQUEST_SIZE
+          value: "524288000"
+        - name: MAX_SINGLE_FILE_SIZE
+          value: "104857600"
+        - name: MAX_FILES_COUNT
+          value: "100"
+        - name: CONVERSION_TIMEOUT
+          value: "30"
+        volumeMounts:
+        - name: uploads-volume
+          mountPath: /app/uploads
+        - name: converted-volume
+          mountPath: /app/converted
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: uploads-volume
+        emptyDir: {}
+      - name: converted-volume
+        emptyDir: {}

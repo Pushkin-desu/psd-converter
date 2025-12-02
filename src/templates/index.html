@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSD to PNG Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .browse-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+        
+        .browse-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .file-list {
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .convert-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .convert-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .progress {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            min-height: 20px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PSD to PNG Converter</h1>
+            <p>Загрузите до {{ max_files }} PSD файлов (макс. {{ max_single_size }}MB каждый, всего до {{ max_total_size }}MB)</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h3>Перетащите PSD файлы сюда</h3>
+                <p>или</p>
+                <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                    Выберите файлы
+                </button>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".psd" onchange="handleFileSelect(this.files)">
+                <p style="margin-top: 15px; color: #666;">
+                    Максимум {{ max_files }} файлов • До {{ max_single_size }}MB каждый • Всего до {{ max_total_size }}MB
+                </p>
+            </div>
+            
+            <div class="file-list" id="fileList"></div>
+            
+            <div class="progress" id="progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="status" id="status"></div>
+            </div>
+            
+            <button class="convert-btn" id="convertBtn" onclick="convertFiles()" disabled>
+                Конвертировать в PNG
+            </button>
+            
+            <div class="features">
+                <div class="feature">
+                    <h4>Быстрая конвертация</h4>
+                    <p>Используем ImageMagick для максимальной скорости</p>
+                </div>
+                <div class="feature">
+                    <h4>Безопасность</h4>
+                    <p>Все файлы автоматически удаляются после обработки</p>
+                </div>
+                <div class="feature">
+                    <h4>Удобный вывод</h4>
+                    <p>Скачивайте все файлы в одном ZIP архиве</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MAX_FILES = {{ max_files }};
+        const MAX_SINGLE_SIZE = {{ max_single_size }} * 1024 * 1024;
+        const MAX_TOTAL_SIZE = {{ max_total_size }} * 1024 * 1024;
+        
+        let selectedFiles = [];
+        
+        const uploadArea = document.getElementById('uploadArea');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+        });
+        
+        uploadArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect(files);
+        }
+        
+        function handleFileSelect(files) {
+            const newFiles = Array.from(files).filter(file => {
+                if (!file.name.toLowerCase().endsWith('.psd')) {
+                    alert(`Файл ${file.name} не в формате PSD`);
+                    return false;
+                }
+                return true;
+            });
+            
+            const totalSize = [...selectedFiles, ...newFiles].reduce((sum, file) => sum + file.size, 0);
+            const wouldExceedFiles = selectedFiles.length + newFiles.length > MAX_FILES;
+            const wouldExceedTotalSize = totalSize > MAX_TOTAL_SIZE;
+            
+            if (wouldExceedFiles) {
+                alert(`Максимум ${MAX_FILES} файлов!`);
+                return;
+            }
+            
+            if (wouldExceedTotalSize) {
+                alert(`Общий размер файлов превышает ${MAX_TOTAL_SIZE / (1024*1024)}MB!`);
+                return;
+            }
+            
+            for (const file of newFiles) {
+                if (file.size > MAX_SINGLE_SIZE) {
+                    alert(`Файл ${file.name} слишком большой (${(file.size / (1024*1024)).toFixed(1)}MB). Максимум: ${MAX_SINGLE_SIZE / (1024*1024)}MB`);
+                    return;
+                }
+            }
+            
+            selectedFiles = [...selectedFiles, ...newFiles];
+            updateFileList();
+            updateConvertButton();
+        }
+        
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <button onclick="removeFile(${index})" style="background: none; border: none; cursor: pointer; color: #dc3545;">✕</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateConvertButton();
+        }
+        
+        function updateConvertButton() {
+            const convertBtn = document.getElementById('convertBtn');
+            convertBtn.disabled = selectedFiles.length === 0;
+        }
+        
+        async function convertFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            const convertBtn = document.getElementById('convertBtn');
+            const progress = document.getElementById('progress');
+            const progressFill = document.getElementById('progressFill');
+            const status = document.getElementById('status');
+            
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Конвертация...';
+            progress.style.display = 'block';
+            status.textContent = 'Подготовка файлов...';
+            
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    progressFill.style.width = '100%';
+                    status.textContent = 'Скачивание архива...';
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `converted_${selectedFiles.length}_files.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    status.textContent = `✅ Успешно конвертировано ${selectedFiles.length} файлов!`;
+                    
+                    selectedFiles = [];
+                    updateFileList();
+                    
+                } else {
+                    const error = await response.json();
+                    status.textContent = `❌ Ошибка: ${error.error || 'Неизвестная ошибка'}`;
+                }
+            } catch (error) {
+                status.textContent = `❌ Ошибка сети: ${error.message}`;
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Конвертировать в PNG';
+                
+                setTimeout(() => {
+                    progress.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

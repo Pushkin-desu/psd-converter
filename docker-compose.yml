@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  psd-converter:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MAX_TOTAL_REQUEST_SIZE=524288000
+      - MAX_SINGLE_FILE_SIZE=104857600
+      - MAX_FILES_COUNT=100
+      - CONVERSION_TIMEOUT=30
+    volumes:
+      - psd_uploads:/app/uploads
+      - psd_converted:/app/converted
+
+volumes:
+  psd_uploads:
+  psd_converted:

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: psd-converter-service
+  namespace: psd-converter
+spec:
+  selector:
+    app: psd-converter
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: ClusterIP
