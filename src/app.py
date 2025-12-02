@@ -23,6 +23,8 @@ ALLOWED_EXTENSIONS = {'psd'}
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
 Path(CONVERTED_FOLDER).mkdir(exist_ok=True)
 
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
