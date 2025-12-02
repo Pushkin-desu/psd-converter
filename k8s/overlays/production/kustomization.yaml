@@ -10,7 +10,7 @@ resources:
 images:
 - name: PLACEHOLDER_IMAGE
   newName: <your-registry>/psd-converter
-  newTag: <your-tag>
+  newTag: v0.0.1
 
 patches:
 - target:
