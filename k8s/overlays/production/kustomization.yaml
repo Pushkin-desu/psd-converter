@@ -10,7 +10,7 @@ resources:
 images:
 - name: PLACEHOLDER_IMAGE
   newName: registry.k3s.stas-yr.ru/psd-converter
-  newTag: v0.0.4
+  newTag: v0.0.5
 
 patches:
 - target:
