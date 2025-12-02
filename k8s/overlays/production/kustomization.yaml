@@ -9,7 +9,7 @@ resources:
 
 images:
 - name: PLACEHOLDER_IMAGE
-  newName: <your-registry>/psd-converter
+  newName: registry.k3s.stas-yr.ru/psd-converter
   newTag: v0.0.1
 
 patches:
@@ -19,4 +19,4 @@ patches:
   patch: |-
     - op: replace
       path: /spec/rules/0/host
-      value: <your-domain>
+      value: psd.k3s.stas-yr.ru
