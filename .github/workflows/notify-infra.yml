@@ -1,0 +1,16 @@
+name: Notify Infra Repo
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.INFRA_REPO_TOKEN }}
+        repository: Pushkin-desu/psd-converter-infra
+        event-type: public-updated
